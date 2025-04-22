@@ -47,3 +47,23 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(exe);
 }
 ```
+
+### 3. Use in your project
+
+Exmaple:
+```zig
+const std = @import("std");
+const freetype = @import("freetype");
+
+pub fn main() !void {
+    const gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    defer gpa.deinit();
+
+    const library = try freetype.Library.init(allocator);
+    defer library.deinit();
+    
+    const face = try library.face("arial.ttf");
+    const glyph = try face.getGlyph('A');
+}
+```
