@@ -1,0 +1,22 @@
+.{
+    .name = .zig_freetype2,
+
+    .version = "0.0.0",
+
+    .fingerprint = 0x86bde4900a50e257,
+
+    .minimum_zig_version = "0.14.0",
+
+    .dependencies = .{
+        .freetype = .{
+            .url = "https://github.com/freetype/freetype/archive/refs/tags/VER-2-13-3.tar.gz",
+            .hash = "N-V-__8AAKfbpwAXnUJ6TJEaqZGWgp6F_8OhiLErejRxQ7Y5",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "README.md",
+    },
+}
