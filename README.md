@@ -48,9 +48,12 @@ pub fn build(b: *std.Build) void {
 }
 ```
 
+---
+
 ### 3. Use in your project
 
-Exmaple:
+Example:
+
 ```zig
 const std = @import("std");
 const freetype = @import("freetype");
@@ -64,6 +67,16 @@ pub fn main() !void {
     defer library.deinit();
     
     const face = try library.face("arial.ttf");
+    defer face.deinit();
+
     const glyph = try face.getGlyph('A');
+    defer glyph.deinit();
 }
 ```
+
+---
+
+## Current Status
+
+This project is currently incomplete and depends on **libc**.  
+The long-term goal is to remove the libc dependency entirely and support more platforms.
