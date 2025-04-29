@@ -31,19 +31,22 @@ pub fn build(b: *std.Build) void {
             .flags = ft2_flags,
         });
 
-        if (optimize == .Debug) {
-            const ftdbg: []const []const u8 =
-                switch (target.result.os.tag) {
-                    .windows => &.{ "builds/windows/ftdebug.c", "src/base/ftver.rc" },
-                    else => &.{"src/base/ftdebug.c"},
-                };
+        const ftdbg: []const []const u8 =
+            switch (target.result.os.tag) {
+                .windows => &.{"builds/windows/ftdebug.c"},
+                else => &.{"src/base/ftdebug.c"},
+            };
 
-            freetype.addCSourceFiles(.{
-                .files = ftdbg,
-                .flags = ft2_flags,
-                .root = c_freetype.path("."),
-            });
-        }
+        freetype.addCSourceFiles(.{
+            .files = ftdbg,
+            .flags = ft2_flags,
+            .root = c_freetype.path("."),
+        });
+
+        // The .rc file will be ignored if the target object format does not support embedded resources.
+        freetype.addWin32ResourceFile(.{
+            .file = c_freetype.path("src/base/ftver.rc"),
+        });
 
         freetype.addIncludePath(c_freetype.path("include"));
 

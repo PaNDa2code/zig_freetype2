@@ -12,6 +12,12 @@ const ft_error = @import("ft_error.zig");
 
 const Allocator = std.mem.Allocator;
 
+const TEST_FONT_FILE = switch (builtin.os.tag) {
+    .windows => "C:\\windows\\Fonts\\arial.ttf",
+    .linux => "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    else => "",
+};
+
 /// FreeType library wrapper struct to be able to use zig allocation interfaces
 pub const Library = struct {
     allocator: *Allocator,
@@ -157,7 +163,7 @@ test "Face" {
     const ft_lib = try Library.init(std.testing.allocator);
     defer ft_lib.deinit();
 
-    const face = ft_lib.face("C:\\windows\\Fonts\\arial.ttf", 32) catch |e| {
+    const face = ft_lib.face(TEST_FONT_FILE, 32) catch |e| {
         std.log.err("freetype {}", .{e});
         return e;
     };
