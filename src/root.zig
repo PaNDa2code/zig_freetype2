@@ -171,44 +171,16 @@ test "Face" {
 }
 
 pub const Glyph = struct {
-    // pub const Format = enum(c_uint) {
-    //     None = 0,
-    //     Composite = 1668246896,
-    //     Bitmap = 1651078259,
-    //     Outline = 1869968492,
-    //     Plotter = 1886154612,
-    //     SVG = 1398163232,
-    // };
-    //
-    // pub const BitmapGlyph = struct {
-    //     const Bitmap = struct {
-    //         rows: u32,
-    //         width: u32,
-    //         pitch: i32,
-    //         buffer: []const u8,
-    //         num_grays: u16,
-    //         pixel_mode: u8,
-    //         palette_mode: u8,
-    //         palette: *anyopaque,
-    //     };
-    //
-    //     root: c_ft.FT_GlyphRec,
-    //     left: i32,
-    //     top: i32,
-    //     bitmap: Bitmap,
-    // };
-
     ft_glyph: c.FT_Glyph,
-    // format: Format,
 
-    // class: union(Format) {
-    //     None: void,
-    //     Composite: void,
-    //     Bitmap: BitmapGlyph,
-    //     Outline: void,
-    //     Plotter: void,
-    //     SVG: void,
-    // },
+    pub fn asGlyphBitmap(self: *Glyph) !c.FT_BitmapGlyph {
+        if (self.ft_glyph.*.format != c.FT_GLYPH_FORMAT_BITMAP) {
+            try ft_error.ftErrorFromInt(
+                c.FT_Glyph_To_Bitmap(&self.ft_glyph, c.FT_RENDER_MODE_NORMAL, null, 1),
+            );
+        }
+        return @ptrCast(self.ft_glyph);
+    }
 
     pub fn deinit(self: *const Glyph) void {
         _ = c.FT_Done_Glyph(self.ft_glyph);
