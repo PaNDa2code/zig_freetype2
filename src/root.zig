@@ -24,7 +24,8 @@ pub const Library = struct {
     ft_library: c.FT_Library,
     ft_memory: c.FT_Memory,
 
-    const max_alignment = if (@bitSizeOf(usize) == 64) 16 else 8;
+    const alignment: std.mem.Alignment = if (@bitSizeOf(usize) == 64) .@"16" else .@"8";
+    const header_size = std.mem.alignForward(usize, @sizeOf(usize), alignment.toByteUnits());
 
     pub fn init(allocator: Allocator) !Library {
         const allocator_ptr = try allocator.create(Allocator);
@@ -80,30 +81,19 @@ pub const Library = struct {
         return .{ .ft_face = ft_face };
     }
 
-    // Writes the total size of the allocation into the beginning of the block_ptr
-    // (includeing the header size).
-    // Returns the slice after the size header.
-    fn addSizeHeader(block: []u8, header: usize) []u8 {
-        std.mem.writeInt(usize, @ptrCast(block.ptr), header, .little);
-        return block[@sizeOf(usize)..];
-    }
-
-    // Retrieves the full slice including the header, using the pointer returned to the user.
-    // The size is read from the header just before the actual data pointer.
-    fn getSizedSlice(ptr: *anyopaque) []u8 {
-        const block_ptr: [*]u8 = @ptrFromInt(@intFromPtr(ptr) - @sizeOf(usize));
-        const total_size = std.mem.readInt(usize, @ptrCast(block_ptr), .little);
-        return block_ptr[0..total_size];
-    }
-
     // Allocator callback for FreeType: allocates memory with extra space for the size header.
     // Returns a pointer to the usable memory (after the header).
-    // TODO: Ensure returned pointer is properly aligned after offsetting for the size header.
     fn ftAlloc(ft_memory: c.FT_Memory, size: c_long) callconv(.c) ?*anyopaque {
         const allocator: *Allocator = @alignCast(@ptrCast(ft_memory.*.user));
-        const total_size: usize = @intCast(size + @sizeOf(usize));
-        const buffer = allocator.alloc(u8, total_size) catch return null;
-        const ptr = addSizeHeader(buffer, total_size).ptr;
+        const total_size = @as(usize, @intCast(size)) + header_size;
+
+        const buffer = allocator.vtable.alloc(allocator.ptr, total_size, alignment, @returnAddress()) orelse return null;
+        std.mem.writeInt(usize, @ptrCast(buffer), total_size, .little);
+
+        const ptr = &buffer[header_size];
+
+        std.debug.assert(alignment.check(@intFromPtr(ptr)));
+
         return ptr;
     }
 
@@ -111,19 +101,47 @@ pub const Library = struct {
     // Retrieves the full slice including the size header and frees it.
     fn ftFree(ft_memory: c.FT_Memory, block_ptr: ?*anyopaque) callconv(.c) void {
         const allocator: *Allocator = @alignCast(@ptrCast(ft_memory.*.user));
-        const block = getSizedSlice(block_ptr.?);
-        allocator.free(block);
+
+        const buffer_adderss = @intFromPtr(block_ptr) - header_size;
+        const buffer_ptr: [*]u8 = @as([*]u8, @ptrFromInt(buffer_adderss));
+        const size = std.mem.readInt(usize, @ptrCast(buffer_ptr), .little);
+
+        allocator.vtable.free(allocator.ptr, buffer_ptr[0..size], alignment, @returnAddress());
     }
 
     // Allocator callback for FreeType: reallocates memory, preserving data and updating the size header.
     // Asserts that the original size matches what was stored, resizes the block, and rewrites the header.
     fn ftRealloc(ft_memory: c.FT_Memory, cur_size: c_long, new_size: c_long, block_ptr: ?*anyopaque) callconv(.c) ?*anyopaque {
         const allocator: *Allocator = @alignCast(@ptrCast(ft_memory.*.user));
-        const old_block = getSizedSlice(block_ptr.?);
-        std.debug.assert(old_block.len == cur_size + @sizeOf(usize));
-        const new_total_size: usize = @intCast(new_size + @sizeOf(usize));
-        const new_block = allocator.realloc(old_block, new_total_size) catch return null;
-        return addSizeHeader(new_block, new_total_size).ptr;
+
+        const buffer_adderss = @intFromPtr(block_ptr) - header_size;
+        const buffer_ptr: [*]u8 = @ptrFromInt(buffer_adderss);
+
+        const size = std.mem.readInt(usize, @ptrCast(buffer_ptr), .little);
+
+        const old_buffer = buffer_ptr[0..size];
+
+        const new_total_size = header_size + @as(usize, @intCast(new_size));
+
+        std.debug.assert(size == @as(usize, @intCast(cur_size)) + header_size);
+
+        const resized = allocator.vtable.resize(
+            allocator.ptr,
+            old_buffer,
+            alignment,
+            new_total_size,
+            @returnAddress(),
+        );
+
+        if (resized) {
+            std.mem.writeInt(usize, @ptrCast(old_buffer.ptr), new_total_size, .little);
+            return block_ptr;
+        }
+
+        const new_buffer = ftAlloc(ft_memory, new_size);
+        std.mem.copyForwards(u8, @as([*]u8, @ptrCast(new_buffer))[0..@intCast(new_size)], old_buffer[header_size..]);
+        ftFree(ft_memory, block_ptr);
+        return new_buffer;
     }
 };
 
