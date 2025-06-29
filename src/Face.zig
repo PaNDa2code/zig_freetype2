@@ -38,6 +38,12 @@ pub fn isFixedWidth(self: *const Face) bool {
     return c.FT_IS_FIXED_WIDTH(self.ft_face);
 }
 
+pub fn setPixelSize(self: *Face, height: u32, width: u32) !void {
+    try ft_error.ftErrorFromInt(
+        c.FT_Set_Pixel_Sizes(self.ft_face, @intCast(width), @intCast(height)),
+    );
+}
+
 pub fn glyphCount(self: *const Face) usize {
     return @intCast(self.ft_face.*.num_glyphs);
 }
