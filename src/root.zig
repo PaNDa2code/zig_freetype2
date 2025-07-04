@@ -13,6 +13,8 @@ const TEST_FONT_FILE = switch (builtin.os.tag) {
     else => "",
 };
 
+pub const Error = ft_error.FreeTypeError;
+
 /// FreeType library wrapper struct to be able to use zig allocation interfaces
 pub const Library = @import("Library.zig");
 
