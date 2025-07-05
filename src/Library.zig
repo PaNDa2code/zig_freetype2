@@ -60,6 +60,19 @@ pub fn face(self: *const Library, font_path: []const u8, size: u32) !Face {
     return .{ .ft_face = ft_face };
 }
 
+pub fn memoryFace(self: *const Library, font_ttf: []const u8, size: u32) !Face {
+    var ft_face: c.FT_Face = null;
+    try ft_error.ftErrorFromInt(
+        c.FT_New_Memory_Face(self.ft_library, font_ttf.ptr, @intCast(font_ttf.len), 0, &ft_face),
+    );
+
+    try ft_error.ftErrorFromInt(
+        c.FT_Set_Pixel_Sizes(ft_face, @intCast(size), @intCast(size)),
+    );
+
+    return .{ .ft_face = ft_face };
+}
+
 // Writes the total size of the allocation into the beginning of the block_ptr
 // (includeing the header size).
 // Returns the slice after the size header.
