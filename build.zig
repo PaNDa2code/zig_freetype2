@@ -8,7 +8,7 @@ pub fn build(b: *std.Build) void {
 
     const freetype_lib = blk: {
         const freetype = b.addStaticLibrary(.{
-            .name = "freetype2",
+            .name = "freetype",
             .target = target,
             .optimize = optimize,
             .link_libc = true,
@@ -55,7 +55,7 @@ pub fn build(b: *std.Build) void {
 
     b.installArtifact(freetype_lib);
 
-    const freetype_mod = b.addModule("zig_freetype2", .{
+    const freetype_mod = b.addModule("freetype", .{
         .root_source_file = b.path("src/root.zig"),
         .optimize = optimize,
         .target = target,
