@@ -19,12 +19,12 @@ pub fn iter(self: *const Face) !FaceIterator {
     };
 }
 
-pub fn getGlyph(self: *const Face, char: u8) !Glyph {
+pub fn getGlyph(self: *const Face, char_code: u32) !Glyph {
     var glyph: Glyph = undefined;
     const glyph_slot_ptr: *c.FT_GlyphSlotRec = @ptrCast(self.ft_face.*.glyph);
 
     try ft_error.ftErrorFromInt(
-        c.FT_Load_Char(self.ft_face, @intCast(char), c.FT_LOAD_RENDER),
+        c.FT_Load_Char(self.ft_face, char_code, c.FT_LOAD_RENDER),
     );
 
     try ft_error.ftErrorFromInt(
