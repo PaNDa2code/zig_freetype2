@@ -38,14 +38,40 @@ pub fn isFixedWidth(self: *const Face) bool {
     return c.FT_IS_FIXED_WIDTH(self.ft_face);
 }
 
-pub fn setPixelSize(self: *Face, height: u32, width: u32) !void {
+pub fn setCharSize(
+    self: *const Face,
+    char_width: u32,
+    char_height: u32,
+    horz_resolution: u32,
+    vert_resolution: u32,
+) !void {
     try ft_error.ftErrorFromInt(
-        c.FT_Set_Pixel_Sizes(self.ft_face, @intCast(width), @intCast(height)),
+        c.FT_Set_Char_Size(
+            self.ft_face,
+            @intCast(char_width),
+            @intCast(char_height),
+            horz_resolution,
+            vert_resolution,
+        ),
     );
 }
 
-pub fn glyphCount(self: *const Face) usize {
-    return @intCast(self.ft_face.*.num_glyphs);
+pub fn setPixelSize(
+    self: *const Face,
+    pixel_width: u32,
+    pixel_height: u32,
+) !void {
+    try ft_error.ftErrorFromInt(
+        c.FT_Set_Pixel_Sizes(
+            self.ft_face,
+            pixel_width,
+            pixel_height,
+        ),
+    );
+}
+
+pub fn glyphCount(self: *const Face) i64 {
+    return self.ft_face.*.num_glyphs;
 }
 
 const std = @import("std");
