@@ -77,7 +77,7 @@ pub fn glyphCount(self: *const Face) i64 {
 const std = @import("std");
 const builtin = @import("builtin");
 
-const c = @import("c.zig");
+const c = @import("root").c;
 
 const ft_error = @import("ft_error.zig");
 

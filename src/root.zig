@@ -1,7 +1,12 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
-const c = @import("c.zig");
+pub const c = @cImport({
+    @cInclude("ft2build.h");
+    @cInclude("freetype/freetype.h");
+    @cInclude("freetype/ftmodapi.h");
+    @cInclude("freetype/ftglyph.h");
+});
 
 const ft_error = @import("ft_error.zig");
 

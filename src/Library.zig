@@ -122,7 +122,7 @@ fn ftRealloc(ft_memory: c.FT_Memory, cur_size: c_long, new_size: c_long, block_p
 const std = @import("std");
 const builtin = @import("builtin");
 
-const c = @import("c.zig");
+const c = @import("root").c;
 
 const ft_error = @import("ft_error.zig");
 

@@ -64,7 +64,7 @@ pub fn build(b: *std.Build) void {
 
     b.installArtifact(freetype_lib);
 
-    freetype_mod.linkLibrary(freetype_lib);
+    // freetype_mod.linkLibrary(freetype_lib);
     freetype_mod.addIncludePath(c_freetype.path("include"));
 
     const lib_unit_tests = b.addTest(.{
