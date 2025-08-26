@@ -6,13 +6,22 @@ pub fn build(b: *std.Build) void {
 
     const c_freetype = b.dependency("freetype", .{});
 
+    const freetype_mod = b.addModule("freetype", .{
+        .root_source_file = b.path("src/root.zig"),
+        .optimize = optimize,
+        .target = target,
+    });
+
     const freetype_lib = blk: {
-        const freetype = b.addStaticLibrary(.{
+        const freetype = b.addLibrary(.{
             .name = "freetype",
-            .target = target,
-            .optimize = optimize,
-            .link_libc = true,
+            .root_module = freetype_mod,
+            .linkage = .static,
+            // .target = target,
+            // .optimize = optimize,
         });
+
+        freetype.linkLibC();
 
         freetype.addCSourceFiles(.{
             .files = ft2_srcs,
@@ -54,12 +63,6 @@ pub fn build(b: *std.Build) void {
     };
 
     b.installArtifact(freetype_lib);
-
-    const freetype_mod = b.addModule("freetype", .{
-        .root_source_file = b.path("src/root.zig"),
-        .optimize = optimize,
-        .target = target,
-    });
 
     freetype_mod.linkLibrary(freetype_lib);
     freetype_mod.addIncludePath(c_freetype.path("include"));
