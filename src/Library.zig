@@ -111,7 +111,7 @@ fn ftFree(ft_memory: c.FT_Memory, block_ptr: ?*anyopaque) callconv(.c) void {
 // Allocator callback for FreeType: reallocates memory, preserving data and updating the size header.
 // Asserts that the original size matches what was stored, resizes the block, and rewrites the header.
 fn ftRealloc(ft_memory: c.FT_Memory, cur_size: c_long, new_size: c_long, block_ptr: ?*anyopaque) callconv(.c) ?*anyopaque {
-    const allocator: *Allocator = @alignCast(@alignCast(ft_memory.*.user));
+    const allocator: *Allocator = @ptrCast(@alignCast(ft_memory.*.user));
     const old_block = getSizedSlice(block_ptr.?);
     std.debug.assert(old_block.len == cur_size + @sizeOf(usize));
     const new_total_size: usize = @intCast(new_size + @sizeOf(usize));
