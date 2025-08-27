@@ -95,5 +95,5 @@ pub const FT_OutlineGlyphRec = extern struct {
 };
 pub const FT_OutlineGlyph = *FT_OutlineGlyphRec;
 
-const c = @import("root").c;
+const c = @import("root.zig").c;
 const ft_error = @import("ft_error.zig");
