@@ -93,7 +93,7 @@ fn getSizedSlice(ptr: *anyopaque) []u8 {
 // Returns a pointer to the usable memory (after the header).
 // TODO: Ensure returned pointer is properly aligned after offsetting for the size header.
 fn ftAlloc(ft_memory: c.FT_Memory, size: c_long) callconv(.c) ?*anyopaque {
-    const allocator: *Allocator = @alignCast(@ptrCast(ft_memory.*.user));
+    const allocator: *Allocator = @ptrCast(@alignCast(ft_memory.*.user));
     const total_size: usize = @intCast(size + @sizeOf(usize));
     const buffer = allocator.alloc(u8, total_size) catch return null;
     const ptr = addSizeHeader(buffer, total_size).ptr;
@@ -103,7 +103,7 @@ fn ftAlloc(ft_memory: c.FT_Memory, size: c_long) callconv(.c) ?*anyopaque {
 // Allocator callback for FreeType: frees memory previously allocated by ftAlloc.
 // Retrieves the full slice including the size header and frees it.
 fn ftFree(ft_memory: c.FT_Memory, block_ptr: ?*anyopaque) callconv(.c) void {
-    const allocator: *Allocator = @alignCast(@ptrCast(ft_memory.*.user));
+    const allocator: *Allocator = @ptrCast(@alignCast(ft_memory.*.user));
     const block = getSizedSlice(block_ptr.?);
     allocator.free(block);
 }
@@ -111,7 +111,7 @@ fn ftFree(ft_memory: c.FT_Memory, block_ptr: ?*anyopaque) callconv(.c) void {
 // Allocator callback for FreeType: reallocates memory, preserving data and updating the size header.
 // Asserts that the original size matches what was stored, resizes the block, and rewrites the header.
 fn ftRealloc(ft_memory: c.FT_Memory, cur_size: c_long, new_size: c_long, block_ptr: ?*anyopaque) callconv(.c) ?*anyopaque {
-    const allocator: *Allocator = @alignCast(@ptrCast(ft_memory.*.user));
+    const allocator: *Allocator = @ptrCast(@alignCast(ft_memory.*.user));
     const old_block = getSizedSlice(block_ptr.?);
     std.debug.assert(old_block.len == cur_size + @sizeOf(usize));
     const new_total_size: usize = @intCast(new_size + @sizeOf(usize));
@@ -122,7 +122,7 @@ fn ftRealloc(ft_memory: c.FT_Memory, cur_size: c_long, new_size: c_long, block_p
 const std = @import("std");
 const builtin = @import("builtin");
 
-const c = @import("root").c;
+const c = @import("root.zig").c;
 
 const ft_error = @import("ft_error.zig");
 

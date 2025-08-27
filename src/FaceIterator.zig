@@ -8,4 +8,4 @@ pub fn next(self: *FaceIterator) void {
     self.char_code = @intCast(c.FT_Get_Next_Char(self.ft_face, self.char_code, @ptrCast(&self.index)));
 }
 
-const c = @import("root").c;
+const c = @import("root.zig").c;
