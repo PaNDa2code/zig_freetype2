@@ -24,7 +24,7 @@ pub fn getGlyph(self: *const Face, char_code: u32) !Glyph {
     const glyph_slot_ptr: *c.FT_GlyphSlotRec = @ptrCast(self.ft_face.*.glyph);
 
     try ft_error.ftErrorFromInt(
-        c.FT_Load_Char(self.ft_face, char_code, c.FT_LOAD_RENDER),
+        c.FT_Load_Char(self.ft_face, char_code, c.FT_LOAD_NO_BITMAP),
     );
 
     try ft_error.ftErrorFromInt(
@@ -32,6 +32,16 @@ pub fn getGlyph(self: *const Face, char_code: u32) !Glyph {
     );
 
     return .{ .ft_glyph = glyph.ft_glyph };
+}
+
+pub fn getGlyphSlot(self: *const Face, char_code: u32) !*c.FT_GlyphSlotRec {
+    const glyph_slot_ptr: *c.FT_GlyphSlotRec = @ptrCast(self.ft_face.*.glyph);
+
+    try ft_error.ftErrorFromInt(
+        c.FT_Load_Char(self.ft_face, char_code, c.FT_LOAD_RENDER),
+    );
+
+    return glyph_slot_ptr;
 }
 
 pub fn isFixedWidth(self: *const Face) bool {
@@ -77,7 +87,7 @@ pub fn glyphCount(self: *const Face) i64 {
 const std = @import("std");
 const builtin = @import("builtin");
 
-const c = @import("root").c;
+const c = @import("c.zig").c;
 
 const ft_error = @import("ft_error.zig");
 

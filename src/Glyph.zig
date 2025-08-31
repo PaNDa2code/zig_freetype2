@@ -5,7 +5,7 @@ ft_glyph: FT_Glyph,
 pub fn glyphBitmap(self: *Glyph) !FT_BitmapGlyph {
     if (self.ft_glyph.format != .Bitmap) {
         try ft_error.ftErrorFromInt(
-            c.FT_Glyph_To_Bitmap(@ptrCast(self.ft_glyph), c.FT_RENDER_MODE_NORMAL, null, 1),
+            c.FT_Glyph_To_Bitmap(@ptrCast(&self.ft_glyph), c.FT_RENDER_MODE_NORMAL, null, 1),
         );
     }
     return @ptrCast(self.ft_glyph);
@@ -66,15 +66,15 @@ pub const FT_Outline = extern struct {
     contoures: [*]u16,
     flags: Flags,
 
-    pub const Tag = packed struct {
+    pub const Tag = packed struct(u8) {
         on_curve: bool,
-        third_order: bool,
+        third_order_bezeir: bool,
         dropout_flag: bool,
         _reserved: u2,
         dropout_mode: u3,
     };
 
-    pub const Flags = packed struct {
+    pub const Flags = packed struct(u32) {
         owner: bool,
         even_odd_fill: bool,
         reverse_fill: bool,
@@ -95,5 +95,5 @@ pub const FT_OutlineGlyphRec = extern struct {
 };
 pub const FT_OutlineGlyph = *FT_OutlineGlyphRec;
 
-const c = @import("root").c;
+const c = @import("c.zig").c;
 const ft_error = @import("ft_error.zig");
