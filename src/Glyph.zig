@@ -68,7 +68,7 @@ pub const FT_Outline = extern struct {
 
     pub const Tag = packed struct(u8) {
         on_curve: bool,
-        third_order_bezeir: bool,
+        third_order: bool,
         dropout_flag: bool,
         _reserved: u2,
         dropout_mode: u3,
