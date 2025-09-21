@@ -10,62 +10,51 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/root.zig"),
         .optimize = optimize,
         .target = target,
+        .link_libc = true,
     });
 
-    const freetype_lib = blk: {
-        const freetype = b.addLibrary(.{
-            .name = "freetype",
-            .root_module = freetype_mod,
-            .linkage = .static,
-            // .target = target,
-            // .optimize = optimize,
-        });
+    freetype_mod.addCSourceFiles(.{
+        .files = ft2_srcs,
+        .flags = ft2_flags,
+        .root = c_freetype.path("."),
+    });
 
-        freetype.linkLibC();
+    const ftsys =
+        switch (target.result.os.tag) {
+            .windows => "builds/windows/ftsystem.c",
+            else => "src/base/ftsystem.c",
+        };
 
-        freetype.addCSourceFiles(.{
-            .files = ft2_srcs,
-            .flags = ft2_flags,
-            .root = c_freetype.path("."),
-        });
+    freetype_mod.addCSourceFile(.{
+        .file = c_freetype.path(ftsys),
+        .flags = ft2_flags,
+    });
 
-        const ftsys =
-            switch (target.result.os.tag) {
-                .windows => "builds/windows/ftsystem.c",
-                else => "src/base/ftsystem.c",
-            };
-
-        freetype.addCSourceFile(.{
-            .file = c_freetype.path(ftsys),
-            .flags = ft2_flags,
-        });
-
+    if (optimize == .Debug) {
         const ftdbg: []const []const u8 =
             switch (target.result.os.tag) {
                 .windows => &.{"builds/windows/ftdebug.c"},
                 else => &.{"src/base/ftdebug.c"},
             };
 
-        freetype.addCSourceFiles(.{
+        freetype_mod.addCSourceFiles(.{
             .files = ftdbg,
             .flags = ft2_flags,
             .root = c_freetype.path("."),
         });
+    }
 
-        // The .rc file will be ignored if the target object format does not support embedded resources.
-        freetype.addWin32ResourceFile(.{
-            .file = c_freetype.path("src/base/ftver.rc"),
-        });
+    freetype_mod.addWin32ResourceFile(.{
+        .file = c_freetype.path("src/base/ftver.rc"),
+    });
 
-        freetype.addIncludePath(c_freetype.path("include"));
-
-        break :blk freetype;
-    };
-
-    b.installArtifact(freetype_lib);
-
-    // freetype_mod.linkLibrary(freetype_lib);
     freetype_mod.addIncludePath(c_freetype.path("include"));
+
+    _ = b.addLibrary(.{
+        .name = "freetype",
+        .root_module = freetype_mod,
+        .linkage = .static,
+    });
 
     const lib_unit_tests = b.addTest(.{
         .root_module = freetype_mod,
