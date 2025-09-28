@@ -30,19 +30,17 @@ pub fn build(b: *std.Build) void {
         .flags = ft2_flags,
     });
 
-    if (optimize == .Debug) {
-        const ftdbg: []const []const u8 =
-            switch (target.result.os.tag) {
-                .windows => &.{"builds/windows/ftdebug.c"},
-                else => &.{"src/base/ftdebug.c"},
-            };
+    const ftdbg: []const []const u8 =
+        switch (target.result.os.tag) {
+            .windows => &.{"builds/windows/ftdebug.c"},
+            else => &.{"src/base/ftdebug.c"},
+        };
 
-        freetype_mod.addCSourceFiles(.{
-            .files = ftdbg,
-            .flags = ft2_flags,
-            .root = c_freetype.path("."),
-        });
-    }
+    freetype_mod.addCSourceFiles(.{
+        .files = ftdbg,
+        .flags = ft2_flags,
+        .root = c_freetype.path("."),
+    });
 
     freetype_mod.addWin32ResourceFile(.{
         .file = c_freetype.path("src/base/ftver.rc"),
