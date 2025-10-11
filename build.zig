@@ -42,9 +42,9 @@ pub fn build(b: *std.Build) void {
         .root = c_freetype.path("."),
     });
 
-    freetype_mod.addWin32ResourceFile(.{
-        .file = c_freetype.path("src/base/ftver.rc"),
-    });
+    // freetype_mod.addWin32ResourceFile(.{
+    //     .file = c_freetype.path("src/base/ftver.rc"),
+    // });
 
     freetype_mod.addIncludePath(c_freetype.path("include"));
 
